@@ -1,0 +1,49 @@
+# Environment
+.env
+.env.local
+.env.*.local
+.env.test
+
+# Dependencies
+node_modules/
+server/node_modules/
+client/node_modules/
+
+# Build outputs
+dist/
+server/dist/
+client/dist/
+
+# Database
+server/data/
+server/data/*.db
+server/data/*.db-shm
+server/data/*.db-wal
+server/data/documents/
+server/data/logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Kilo
+.kilo/
+.kilocode/
+.opencode/
+
+# AI/IDE tools
+.qodo/
+
+# Debug & utility scripts (development only)
+check-*.cjs
+check-*.mjs
+test-*.cjs
+test-*.mjs
+cleanup_smoke.js
+fix_compensation_fk.js
