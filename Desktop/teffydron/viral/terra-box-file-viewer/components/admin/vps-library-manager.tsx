@@ -277,27 +277,27 @@ export function VpsLibraryManager() {
       <div
         onDragOver={(event) => event.preventDefault()}
         onDrop={(event) => handleDrop(event, '')}
-        className="rounded-xl border border-dashed p-3"
+        className="rounded-xl border border-dashed p-4"
       >
-        <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold">
+        <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold">
           <Folder className="size-4 text-primary" /> Archivos en el VPS
         </h3>
         {files.length ? (
-          <ul className="divide-y">
+          <ul className="divide-y max-h-96 overflow-y-auto">
             {files.map((file) => (
               <li
                 key={file.path}
                 draggable
                 onDragStart={(event) => event.dataTransfer.setData('text/vps-library-file', file.path)}
-                className="flex cursor-grab items-center gap-3 py-2 active:cursor-grabbing"
+                className="flex cursor-grab items-center gap-3 py-3 active:cursor-grabbing hover:bg-secondary/30 transition-colors"
                 title="Arrastrá este archivo a una carpeta para moverlo"
               >
                 <Folder className="size-4 shrink-0 text-muted-foreground" />
-                <span className="min-w-0 flex-1 truncate text-sm">{file.name}</span>
-                <span className="hidden max-w-48 truncate text-xs text-muted-foreground sm:block">
+                <span className="min-w-0 flex-1 truncate text-sm font-medium">{file.name}</span>
+                <span className="hidden sm:block max-w-48 truncate text-xs text-muted-foreground">
                   {file.folder || 'Raíz'}
                 </span>
-                <span className="text-xs tabular-nums text-muted-foreground">{formatBytes(file.size)}</span>
+                <span className="text-xs tabular-nums text-muted-foreground hidden sm:block">{formatBytes(file.size)}</span>
                 <Button
                   type="button"
                   size="sm"
@@ -313,7 +313,7 @@ export function VpsLibraryManager() {
             ))}
           </ul>
         ) : (
-          <p className="py-4 text-center text-sm text-muted-foreground">
+          <p className="py-8 text-center text-sm text-muted-foreground">
             {snapshot ? 'Todavía no hay archivos. Podés subir varios a la vez.' : 'Cargando biblioteca…'}
           </p>
         )}
