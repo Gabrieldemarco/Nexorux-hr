@@ -7,6 +7,8 @@ import { Readable, Transform } from 'node:stream'
 import { pipeline } from 'node:stream/promises'
 import type { TeraboxFile } from '@/lib/terabox'
 import { VIDEO_CACHE_LIMIT_BYTES, getVideoCacheDirectory } from '@/lib/video-cache'
+import { db } from '@/lib/db'
+import { videoCache } from '@/lib/db/schema'
 
 export const VPS_LIBRARY_PREFIX = '/__vps__'
 const COVER_PREFIX = '__folder_cover__.'
@@ -240,10 +242,53 @@ async function scanDirectory(directory: string, folder: string, output: LibraryI
   }
 }
 
+async function scanVideoCache(output: LibraryItem[]) {
+  const cacheDir = getVideoCacheDirectory()
+  try {
+    const entries = await readdir(cacheDir, { withFileTypes: true })
+    for (const entry of entries) {
+      if (entry.isSymbolicLink() || !entry.isFile()) continue
+      const fullPath = join(cacheDir, entry.name)
+      const fileStat = await stat(fullPath)
+      // Los archivos de caché tienen nombres hash, usamos el nombre modificado como nombre legible
+      output.push({
+        path: `cache/${entry.name}`,
+        name: entry.name, // Podríamos mapear a un nombre más legible si lo tenemos
+        size: fileStat.size,
+        folder: 'Caché de TeraBox',
+        modifiedAt: fileStat.mtimeMs,
+        isDirectory: false,
+      })
+    }
+  } catch (error) {
+    if (!(error instanceof Error && 'code' in error && error.code === 'ENOENT')) throw error
+  }
+}
+
 export async function getVpsLibrarySnapshot(userId?: string) {
   await ensureVpsLibraryDirectory(userId)
   const items: LibraryItem[] = []
   await scanDirectory(getVpsLibraryDirectory(userId), '', items, userId)
+  
+  // Agregar videos de la caché de TeraBox
+  const cachedVideos = await db.select().from(videoCache)
+  for (const video of cachedVideos) {
+    try {
+      const cachePath = getVideoCachePath(video.path)
+      const fileStat = await stat(cachePath)
+      items.push({
+        path: `cache/${video.path}`,
+        name: video.path.split('/').pop() || video.path,
+        size: fileStat.size,
+        folder: 'Caché de TeraBox',
+        modifiedAt: fileStat.mtimeMs,
+        isDirectory: false,
+      })
+    } catch (error) {
+      if (!(error instanceof Error && 'code' in error && error.code === 'ENOENT')) continue
+    }
+  }
+  
   const folders = [{ path: '', name: 'Biblioteca raíz' }, ...items
     .filter((item) => item.isDirectory)
     .map(({ path, name }) => ({ path, name }))]
